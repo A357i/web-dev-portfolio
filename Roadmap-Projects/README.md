@@ -1,5 +1,0 @@
-# HELLO 
-# THIS IS THE ROADMAP-PROJECTS FOLDER
-# WHICH IM ALSO DEVELOPING AND SHARING MY LEARNING PATH
-
-https://roadmap.sh/projects/task-tracker-js
