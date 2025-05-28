@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: linear-gradient(to right, #ece9e6, #ffffff);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 30px;
+}
+.todo-container {
+    background-color: white;
+    padding: 25px 30px;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 540px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #333;
+}
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+.input-group input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+.input-group button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    border: none;
+    color: white;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+}
+.input-group button:hover {
+    background-color: #0056b3;
+}
+ul {
+    list-style: none;
+    margin-bottom: 20px;
+}
+li {
+    background-color: #f3f3f3;
+    margin: 8px 0;
+    padding: 10px 15px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+li button {
+    background-color: #ff4d4d;
+    border: none;
+    padding: 5px 10px;
+    color: white;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+li button:hover{
+    background-color: #d93636;
+}
+li input {
+    padding: 10px 15px;
+    border: none;
+    color: rgb(0, 0, 0);
+    cursor: pointer;
+    margin-right: 10px;
+}
+.completed {
+    text-decoration: line-through; 
+    color: #888;  
+}
+</style>
+<body>
+    <div class="todo-container">
+        <h1>Task Tracker</h1>
+
+        <div class="input-group">
+            <input type="text" name="" placeholder="Start writing and press submit to create task" id="taskInput">
+            <button type="submit" onclick="addTask()">Submit</button>
+        </div>
+
+        <ul id="taskList"></ul>
+
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
