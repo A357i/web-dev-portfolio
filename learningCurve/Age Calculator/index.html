@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body {
+        font-family: 'Nunito', sans-serif;
+        display: flex;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 50px;
+    }
+    .calcCont {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-width: 500px;
+        width: 100%;
+        padding: 20px 25px;
+        background-color: hsla(219, 74%, 21%, 0.542);
+        border-radius: 8px 10px;
+    }
+    label {
+        font-size: 30px;
+    }
+    #calcYears {
+        display: flex;
+        gap: 10px;
+    }
+    form input {
+        padding: 10px 125px;
+        border-radius: 16px 20px;
+        border: 0;
+        font-size: 20px;
+        margin-top: 10px;
+    }
+    button {
+        padding: 10px;
+        min-width: 100%;
+        background-color: hsla(216, 87%, 38%, 0.436);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 5px;
+    }
+    button:hover {
+        background-color: hsl(238, 87%, 38%);
+    }
+    #result {
+        margin-top: 5px;
+        font-weight: bold;
+        color: hsl(0, 66%, 47%);
+        text-align: center;
+    }
+    p {
+        margin-top: 10px;
+        text-align: center;
+        font-weight: bold;
+        color: hsl(314, 90%, 34%);
+    }
+    p:hover{
+        color: rgb(84, 3, 65);
+        cursor: pointer;
+    }
+</style>
+<body>
+    <div class="calcCont">
+        <form>
+            <label for="calcYears">Enter your birth date:</label>
+            <input type="date" name="" id="calcYears">
+            <button type="submit" onclick="calculateAge(event)">Calculate</button>
+            <div id="result"></div>
+            <p id="birthdayCountdown"></p>
+        </form>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>
