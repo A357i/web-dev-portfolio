@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Store</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="images/logo.jpg" type="image/x-icon">
+</head>
+<body>  
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <img src="images/logo.jpg" alt="">
+            </div>
+            <div class="search-bar">
+                <input type="text" name="" id="" placeholder="Search books...">
+            <button><i class="fa-solid fa-search"></i></button>
+            </div>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#Home">Home</a></li>
+                <li><a href="#About">About</a></li>
+                <li><a href="#Featured">Featured</a></li>
+                <li><a href="#Arrivals">Arrivals</a></li>
+                <li><a href="#Reviews">Reviews</a></li>
+                <li><a href="#Blog">Blog</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 id="Featured">Featured books</h1>
+            <div class="featured-books">
+                <div class="book">
+                    <img src="images/book1.jpg" alt="Book 1">
+                    <h2>A Smarter Way to Learn HTML and CSS</h2>
+                    <p class="author">Mark Myers</p>
+                    <p><strong>"By the time you get to Chapter 50, you’ll have forgotten most of what you highlighted in Chapter 1."</strong></p>
+                    <button>Add to Cart</button>
+                </div>
+                <div class="book">
+                    <img src="images/book2.jpg" alt="Book 2">
+                    <h2>Factfulness</h2>
+                    <p>Hans Rosling</p>
+                    <p><strong>"Update your knowledge. Some knowledge goes out of date quickly."</strong></p>
+                    <button>Add to Cart</button>
+                </div>
+                <div class="book">
+                    <img src="images/book3.jpg" alt="Book 3">
+                    <h2>JavaScript: The Good Parts</h2>
+                    <p>Douglas Crockford</p>
+                    <p><strong>"Elegance in JavaScript lies in simplicity."</strong></p>
+                    <button>Add to Cart</button>
+                </div>
+                <div class="book">
+                    <img src="images/book4.jpg" alt="Book 4">
+                    <h2>The Art of Computer Programming</h2>
+                    <p>Donald E. Knuth</p>
+                    <p><strong>"Programming is a dance between logic and creativity."</strong></p>
+                    <button>Add to Cart</button>
+                </div>
+                <div class="book">
+                    <img src="images/book5.jpg" alt="Book 5">
+                    <h2>Learning PHP, MySQL & JavaScript</h2>
+                    <p>Robin Nelson</p>
+                    <p><strong>"This is a great beginner's book that introduces several crucial web developer languages."</strong></p>
+                    <button>Add to Cart</button>
+                </div>
+                <div class="book">
+                    <img src="images/book6.jpg" alt="Book 6" height="210px">
+                    <h2>Computability and logic</h2>
+                    <p>George Bolos & Richard C. Jeffrey</p>
+                    <p></p>
+                    <button>Add to Cart</button>
+                </div>
+                <div class="book">
+                    <img src="images/book7.jpg" alt="Book 7">
+                    <h2>Steve Jobs</h2>
+                    <p>Walter Isaacson</p>
+                    <p><strong>"Your goal should be making something you believe in and making a company that will last.”</strong></p>
+                    <button>Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="arrivals-section" id="arrivals">
+        <h1 id="Arrivals">New Arrivals</h1>
+        <div class="arrivals-list">
+            <div class="book">
+                <img src="images/arrivals1.jpg" alt="Arrivals 1">
+                <h3>The let them theory</h3>
+                <p>Mel Robbins</p>
+                <p>We so overengineer the way we plan to start, we never start at all.</p>
+                <button>Add to Cart</button>
+            </div>
+            <div class="book">
+                <img src="images/arrivals2.jpg" alt="Arrivals 2">
+                <h3>The Diary of a Young Girl</h3>
+                <p>Anne Frank</p>
+                <p>I'm judged for speaking, ridiculed for silence, called rude for answering, and selfish for taking one more bite.</p>
+                <button>Add to Cart</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="Blog" class="blog-section">
+        <h1>Blog</h1>
+        <div class="blog-posts">
+            <div class="post">
+                <img src="" alt="">
+                <h2>Top 10 Must-Read Books of 2025</h2>
+                <p>Discover the best books of the year, from thrilling mysteries to heart warming romances.</p>
+                <a href="#" class="read-more">Read More</a>
+            </div>
+            <div class="post">
+                <img src="" alt="">
+                <h2>ss</h2>
+                <p>An exclusive interview with the legendary author of the Harry Potter series.</p>
+                <a href="#" class="read-more">Read More</a>
+            </div>
+            <div class="post">
+                <img src="" alt="">
+                <h3>How to build a Reading Habit</h3>
+                <p>Tips and tricks to help you read more books and enjoy the process.</p>
+                <a href="#" class="read-more">Read More</a>
+            </div>
+        </div>
+    </section>
+
+    <section class="reviews-section" id="Reviews">
+        <h1>Customer Reviews</h1>
+        <div class="reviews-list">
+            <div class="review">
+                <div class="rating">
+                    ⭐⭐⭐⭐⭐
+                </div>
+                <h3>Amazing Book!</h3>
+                <p>"I’m typically not a reader but this book had me hooked. Highly recommended!"</p>
+                <p class="reviewer">- Joseland Salle</p>
+            </div>
+            <div class="review">
+                <div class="rating">
+                    ⭐⭐⭐⭐⭐
+                </div>
+                <h3>I loved this book a lot!</h3>
+                <p>"I loved this book a lot. Its a great entry of Anne's life. And you know what anyone can be inspired by her life, her life was very tough being a jewish girl.And no one can think that someone can die in such a small age, its just 16. "</p>
+                <p class="reviewer">- Natasha K. '"</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>About Us</h4>
+                <p>We always find the best solutions for our customers.</p>
+            </div>
+            <div class="footer-section">
+                <h4 id="About">Quick Links</h4>
+                <ul>
+                    <li><a href="#Home">Home</a></li>
+                    <li><a href="#About">About</a></li>
+                    <li><a href="#Featured">Featured</a></li>
+                    <li><a href="#Arrivals">Arrivals</a></li>
+                    <li><a href="#Reviews">Reviews</a></li>
+                    <li><a href="#Blog">Blog</a></li>
+                    <li><a href="#Contact" id="Contact">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contact Us</h4>
+                <p>Email: library@test.com</p>
+                <p>Phone: +1234567890</p>
+                <p>Address: Kumanova, North Macedonia</p>
+            </div>
+            <div class="footer-section">
+                <h4>Follow Us</h4>
+                <ul class="social-links">
+                    <li><a href="#"><i class="fa-brands fa-facebook"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-instagram"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-x-twitter"></i></a></li>
+                    <li><a href="#"><i class="fa-brands fa-linkedin"></i></a></li>
+                </ul>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
