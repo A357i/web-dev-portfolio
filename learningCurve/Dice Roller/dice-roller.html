@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    body {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 2em;
+        
+    }
+    form {
+        margin: auto;
+        max-width: 550px;
+    }
+    #myNum {
+        padding: 15px;
+        border-radius: 10px;
+    }
+    button {
+        border-radius: 5px;
+        padding: 10px 15px;
+        background-color: hsl(216, 100%, 55%);
+        color: white;
+    }
+    #Btn:hover {
+        background-color: hsl(235, 100%, 55%);
+        cursor: pointer;
+    }
+</style>
+<body>
+    
+    <div id="container">
+        <h1>Dice Roller</h1>
+
+        <label for="number"># of Dice:</label>
+        <input type="number" value="1" min="1" name="" id="myNum">
+        
+        <button id="Btn" onclick="BtnFunction()">Roll Dice</button>
+        <p id="result"></p>
+
+        <div id="diceResult"></div>
+        <div id="diceImages"></div>
+    </div>
+
+    <script src="Dice-Roller.js"></script>
+</body>
+</html>
