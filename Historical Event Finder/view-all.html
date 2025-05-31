@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View All Events</title>
+    <link href="./css/output.css" rel="stylesheet">
+<style>
+    .event-list {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .event-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .event-item:last-child {
+        border-bottom: none;
+    }
+</style>
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-800 text-white p-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Historical Event Finder</h1>
+        <input type="text" name="" id="search-input" placeholder="Search historical events..." class="rounded p-2 text-black w-64 bg-white">
+    </header>
+
+    <nav class="bg-blue-700 text-white px-4 py-2 flex gap-6">
+        <a href="index.html" class="hover:underline">Timeline</a>
+        <a href="map-view.html" class="hover:underline">Map View</a>
+        <a href="categories.html" class="hover:underline">Categories</a>
+        <a href="famous-people.html" class="hover:underline">Famous People</a>
+    </nav>
+
+    <main class="p-4">
+        <h2 class="text-lg font-semibold mb-4 text-center" id="category-title">Events</h2>
+        <div class="event-list" id="event-list">
+
+        </div>
+        <a href="Categories.html" class="text-blue-500 hover:underline block mt-4">Back to Categories</a>
+    </main>
+
+    <script src="search.js"></script>
+    <script>
+        let allEvents = [];
+        const API_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxZTQ2MjYxZDNlOGZjNzBmMzMxYzQ3NzIwNGNhNmIyMCIsImp0aSI6ImIxYzk2OGNhMmFmZGM0NmZkMjI4MjA4YTgyM2FjOTAxYTQ1OGEwMDgyMDgxN2IwNzA3Y2UzYzBjNjBhMTVlZmNhYTE5YTEwODc0ZmQzMTU4IiwiaWF0IjoxNzQ2MDIxOTIyLjk4MDAzMywibmJmIjoxNzQ2MDIxOTIyLjk4MDAzNCwiZXhwIjozMzMwMjkzMDcyMi45NzYyMTUsInN1YiI6Ijc4MjExODYxIiwiaXNzIjoiaHR0cHM6Ly9tZXRhLndpa2ltZWRpYS5vcmciLCJyYXRlbGltaXQiOnsicmVxdWVzdHNfcGVyX3VuaXQiOjUwMDAsInVuaXQiOiJIT1VSIn0sInNjb3BlcyI6WyJiYXNpYyJdfQ.jXzQPp14NVoY-lvaLCjDsERYwu-enWBQuKCJkGp0Kj16yYY9NNafB2cWfNyP1UQCteY4KZ7-17VR9bQFA-ZIuUKJ6mD33TcV2h7qGf0m9fWf_vedqi6R7ZFrIklmLTlFMlQzUrUmuIEf3zSiRtwNAJx-xk7Wa3AcQjr54BOzUwSHcsvjWpTzQdv4IWkS88hIzpM1989YZtcLPQ7UCxxuS3PPFx_6vEuv-jJilbdXG2It9ODSamdqCbjtR_ns1tIdXBXfFBZ--1SGDAprur9rMFqJ46w4-HjRtmzaE3PRvwE3caYiNJYS8OA29QIt-hOd6pyac6vVF_Zo_RBBeEU-6m0X7pT1Xlffqbp3llfiwU0ttPtN30x2JBPPjenBV2l1Ryj5iicdnWeTfI-QlX4CUgSrd4sXZr_v_KvUDKOOIXUimLRkEUi1c3BYssobc374twVltchb282b4kS6YzVOOOOcJwYhPMAyAzpt44o77Hi-Opoxgspg0PvE5tYfLFbCaRn20JFl5VMzFlqjH_qXJJH2WNGmuNtkmsIx__BirvC-2JTEuz85Z0cQZ6nz6U2qckUq_nkr9k8z28AXWLcs42CRtmtA5xiD-qkE-qYhIZ9iNPdQGdFgdX90dUgt6Ch7d6jP1oKDYWQjGSjC5xlFSdf3eigrB71Qd6eQncIE9p8';
+
+        function categorizeEvent(description) {
+            description = description.toLowerCase();
+            if (description.includes("war") || description.includes("battle") || description.includes("conflict") || description.includes("revolution")) {
+                return { type: "Wars & Conflicts", color: "bg-red-500" };
+            } else if (description.includes("assassination") || description.includes("election") || description.includes("treaty") || description.includes("soviet") || description.includes("napoleon")) {
+                return { type: "Political Events", color: "bg-blue-500" };
+            } else {
+                return { type: "Cultural Milestones", color: "bg-purple-500" };
+            }
+        }
+
+        async function fetchEvents() {
+            try {
+                const url = 'https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/all/04/28';
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Api-User-Agent': 'HistoricalEventFinder (your-email@example.com)'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const apiEvents = data.events;
+
+                console.log("Raw API events:", apiEvents);
+
+                allEvents = apiEvents
+                    .filter(event => event.year)
+                    .map(event => {
+                        const category = categorizeEvent(event.text);
+                        return {
+                            name: event.text,
+                            start: parseInt(event.year),
+                            type: category.type,
+                            color: category.color
+                        };
+                    });
+
+                console.log("Processed events:", allEvents);
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                allEvents = [
+                    { name: "American Civil War", start: 1861, type: "Wars & Conflicts", color: "bg-red-500" },
+                    { name: "World War I", start: 1914, type: "Wars & Conflicts", color: "bg-red-500" },
+                    { name: "Berlin Wall Falls", start: 1989, type: "Political Events", color: "bg-blue-500" }
+                ];
+                console.log("Fallback events:", allEvents);
+            }
+        }
+
+        function renderEvents() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const category = urlParams.get("category");
+            if (!category) {
+                document.getElementById("category-title").textContent = "Category Not Found";
+                document.getElementById("event-list").innerHTML = '<p class="text-center text-gray-500">Please select a category.</p>';
+                return;
+            }
+
+            document.getElementById("category-title").textContent = `${category} Events`;
+
+            const eventList = document.getElementById("event-list");
+            const categoryEvents = allEvents.filter(event => event.type === category);
+
+            if (categoryEvents.length === 0) {
+                eventList.innerHTML = '<p class="text-center text-gray-500">No events available for this category.</p>';
+                return;
+            }
+
+            eventList.innerHTML = categoryEvents
+                .map(event => `
+                    <div class="event-item">
+                        <p>${event.name} (${event.start})</p>
+                    </div>
+                `)
+                .join('');
+        }
+
+        async function initViewAll() {
+            await fetchEvents();
+            renderEvents();
+        }
+
+        window.onload = () => {
+            initViewAll();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Event Finder</title>
+    <link href="./css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-800 text-white p-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Historical Event Finder</h1>
+        <input type="text" id="search-input" placeholder="Search historical events..." class="rounded p-2 text-black w-64 bg-white">
+    </header>
+
+    <nav class="bg-blue-700 text-white px-4 py-2 flex gap-6">
+        <a href="index.html" class="hover:underline">Timeline</a>
+        <a href="map-view.html" class="hover:underline">Map View</a>
+        <a href="Categories.html" class="hover:underline">Categories</a>
+        <a href="famous-people.html" class="hover:underline">Famous People</a>
+    </nav>
+
+    <div class="flex flex-col md:flex-row p-4 space-y-4 md:space-y-0 md:space-x-4">
+        <aside class="w-full md:w-1/4 bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-4">Filters</h2>
+            <div id="filter-warning" class="hidden bg-yellow-100 text-yellow-800 p-2 rounded-md mb-4">
+                <span class="font-semibold">⚠ Many filters active (<span id="filter-count">0</span>)</span>
+                <p class="text-sm">Try selecting fewer filters to see more specific events.</p>
+            </div>
+            <div class="mb-4">
+                <h3 class="font-medium">Time Period</h3>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="ancient" checked>Ancient (pre-500 CE)</label>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="medieval">Medieval (500-1500)</label>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="early-modern">Early Modern (1500-1800)</label>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="modern">Modern (1800-present)</label>
+            </div>
+            <div class="mb-4">
+                <h3 class="font-medium">Event Type</h3>
+                <label class="block"><input type="checkbox" class="mr-2 event-type" data-type="Wars & Conflicts" checked>Wars & Conflicts</label>
+                <label class="block"><input type="checkbox" class="mr-2 event-type" data-type="Political Events">Political Events</label>
+                <label class="block"><input type="checkbox" class="mr-2 event-type" data-type="Scientific Achievement">Scientific Discoveries</label>
+                <label class="block"><input type="checkbox" class="mr-2 event-type" data-type="Cultural Milestones">Cultural Milestones</label>
+            </div>
+            <button id="reset-filters" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Reset All Filters</button>
+        </aside>
+
+        <main class="w-full md:w-3/4 bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-4">Historical Timeline <span id="event-count" class="text-red-500 text-sm"></span></h2>
+            <div id="timeline-warning" class="hidden bg-blue-100 text-blue-800 p-4 rounded-md mb-4">
+                <h3 class="font-semibold">Too many events to display clearly</h3>
+                <p>Try one of these options:</p>
+                <ul class="list-disc list-inside text-sm">
+                    <li>Narrow your search by selecting fewer filters</li>
+                    <li>Click on a cluster to zoom into a specific time period</li>
+                    <li>Switch to Categories view to browse by event type</li>
+                </ul>
+            </div>
+            <div id="timeline" class="relative w-full h-[600px] overflow-y-auto"></div>
+        </main>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="search.js"></script>
+    <script>
+        let allEvents = []; 
+        const MAX_DISPLAYABLE_EVENTS = 20; 
+        let currentZoomRange = null; 
+
+        function categorizeEvent(description) {
+            description = description.toLowerCase();
+            if (description.includes("war") || description.includes("battle") || description.includes("conflict")) {
+                return { type: "Wars & Conflicts", color: "bg-red-300" };
+            } else if (description.includes("assassination") || description.includes("election") || description.includes("treaty")) {
+                return { type: "Political Events", color: "bg-purple-300" };
+            } else if (description.includes("discovered") || description.includes("invention") || description.includes("scientific")) {
+                return { type: "Scientific Achievement", color: "bg-green-300" };
+            } else {
+                return { type: "Cultural Milestones", color: "bg-blue-300" };
+            }
+        }
+
+
+        function getTimePeriod(year) {
+            if (year < 500) return "ancient";
+            if (year >= 500 && year <= 1500) return "medieval";
+            if (year > 1500 && year <= 1800) return "early-modern";
+            return "modern";
+        }
+
+
+        async function fetchEvents() {
+            try {
+                const response = await axios.get("https://byabbe.se/on-this-day/4/28/events.json");
+                const apiEvents = response.data.events;
+
+                allEvents = apiEvents
+                    .filter(event => event.year >= 0)
+                    .map(event => {
+                        const category = categorizeEvent(event.description);
+                        return {
+                            name: event.description.split('.')[0],
+                            start: parseInt(event.year),
+                            end: parseInt(event.year),
+                            type: category.type,
+                            color: category.color,
+                            period: getTimePeriod(parseInt(event.year))
+                        };
+                    });
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                allEvents = [
+                    { name: "American Civil War", start: 1861, end: 1865, type: "Wars & Conflicts", color: "bg-blue-300", period: "modern" },
+                    { name: "World War I", start: 1914, end: 1918, type: "Wars & Conflicts", color: "bg-red-300", period: "modern" },
+                    { name: "Moon Landing", start: 1969, end: 1969, type: "Scientific Achievement", color: "bg-green-300", period: "modern" },
+                    { name: "Berlin Wall Falls", start: 1989, end: 1989, type: "Political Event", color: "bg-purple-300", period: "modern" }
+                ];
+            }
+        }
+
+        function filterEvents() {
+            const selectedPeriods = Array.from(document.querySelectorAll(".time-period:checked"))
+                .map(checkbox => checkbox.getAttribute("data-period"));
+            const selectedTypes = Array.from(document.querySelectorAll(".event-type:checked"))
+                .map(checkbox => checkbox.getAttribute("data-type"));
+
+            let filtered = allEvents.filter(event => 
+                selectedPeriods.includes(event.period) && 
+                selectedTypes.includes(event.type)
+            );
+
+
+            if (currentZoomRange) {
+                filtered = filtered.filter(event => 
+                    event.start >= currentZoomRange.start && event.start <= currentZoomRange.end
+                );
+            }
+
+            return filtered;
+        }
+
+
+        function renderTimeline(events) {
+            const timeline = document.getElementById("timeline");
+            const timelineWarning = document.getElementById("timeline-warning");
+            const eventCountSpan = document.getElementById("event-count");
+            timeline.innerHTML = '';
+
+            eventCountSpan.textContent = `(${events.length})`;
+
+            if (events.length > MAX_DISPLAYABLE_EVENTS && !currentZoomRange) {
+                timelineWarning.classList.remove("hidden");
+                renderClusters(events);
+            } else {
+                timelineWarning.classList.add("hidden");
+                renderIndividualEvents(events);
+            }
+        }
+
+        function renderIndividualEvents(events) {
+            const timeline = document.getElementById("timeline");
+
+            events.forEach(event => {
+                const eventCard = document.createElement("div");
+                eventCard.classList.add("relative", "w-full", "h-16", "rounded-md", "shadow-md", event.color, "cursor-pointer", "hover:shadow-xl", "p-2", "mb-2");
+                eventCard.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">${event.name}</span>
+                        <span class="text-sm">${event.start}</span>
+                    </div>
+                `;
+                eventCard.onclick = function() { alert(event.name); };
+                timeline.appendChild(eventCard);
+            });
+        }
+
+        function renderClusters(events) {
+            const timeline = document.getElementById("timeline");
+            const clusters = groupByYear(events);
+            Object.keys(clusters).forEach(year => {
+                const cluster = document.createElement("div");
+                cluster.classList.add("relative", "p-2", "mb-4", "cursor-pointer", "bg-gray-200");
+                cluster.innerHTML = `<h3 class="font-semibold">${year}</h3>`;
+
+                const eventCluster = document.createElement("div");
+                clusters[year].forEach(event => {
+                    const eventItem = document.createElement("div");
+                    eventItem.classList.add("text-sm", "text-gray-700");
+                    eventItem.textContent = event.name;
+                    eventCluster.appendChild(eventItem);
+                });
+
+                cluster.appendChild(eventCluster);
+                cluster.onclick = function() {
+                    zoomIntoYear(year);
+                };
+                timeline.appendChild(cluster);
+            });
+        }
+
+        function groupByYear(events) {
+            return events.reduce((acc, event) => {
+                if (!acc[event.start]) acc[event.start] = [];
+                acc[event.start].push(event);
+                return acc;
+            }, {});
+        }
+
+        function zoomIntoYear(year) {
+            const filtered = allEvents.filter(event => event.start == year);
+            currentZoomRange = { start: year, end: year };
+            renderTimeline(filtered);
+        }
+
+        function resetFilters() {
+            document.querySelectorAll(".time-period").forEach(checkbox => checkbox.checked = true);
+            document.querySelectorAll(".event-type").forEach(checkbox => checkbox.checked = true);
+            currentZoomRange = null;
+            renderTimeline(allEvents);
+        }
+
+        async function init() {
+            await fetchEvents();
+            renderTimeline(allEvents);
+
+            document.getElementById("reset-filters").addEventListener("click", resetFilters);
+
+            document.querySelectorAll(".time-period, .event-type").forEach(input => {
+                input.addEventListener("change", () => renderTimeline(filterEvents()));
+            });
+        }
+
+        init(); 
+    </script>
+</body>
+</html>

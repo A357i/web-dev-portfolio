@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    #map {
+        height: 600px;
+        width: 100%;
+    }
+    .read-more-btn {
+        color: #3b82f6;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+    .read-more-btn:hover {
+        color: #1d4ed8;
+    }
+    .loading {
+        color: #6b7280;
+        font-style: italic;
+    }
+    .error {
+        color: #ef4444;
+        font-style: italic;
+    }
+</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historical Map View</title>
+    <link href="./css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+</head>
+<body class="bg-gray-100 font-sans">
+    <header class="bg-blue-800 text-white p-4 flex justify-between items-center">
+        <h1 class="text-2xl font-bold">Historical Event Finder</h1>
+        <input type="text" name="" id="search-input" placeholder="Search historical events..." class="rounded p-2 text-black w-64 bg-white">
+    </header>
+
+    <nav class="bg-blue-700 text-white px-4 py-2 flex gap-6">
+        <a href="index.html" class="hover:underline">Timeline</a>
+        <a href="map-view.html" class="hover:underline">Map View</a>
+        <a href="Categories.html" class="hover:underline">Categories</a>
+        <a href="famous-people.html" class="hover:underline">Famous People</a>
+        <a href="login.html">Login / Sign Up</a>
+    </nav>
+
+    <div class="flex flex-col md:flex-row p-4 space-y-4 md:space-y-0 md:space-x-4">
+        <aside class="w-full md:w-1/4 bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-4">Filters</h2>
+            <div class="mb-4">
+                <h3 class="font-medium">Regions</h3>
+                <label class="block"><input type="checkbox" class="mr-2 region" data-region="Europe">Europe</label>
+                <label class="block"><input type="checkbox" class="mr-2 region" data-region="North America">North America</label>
+                <label class="block"><input type="checkbox" class="mr-2 region" data-region="South America">South America</label>
+                <label class="block"><input type="checkbox" class="mr-2 region" data-region="Asia">Asia</label>
+                <label class="block"><input type="checkbox" class="mr-2 region" data-region="Africa">Africa</label>
+                <label class="block"><input type="checkbox" class="mr-2 region" data-region="Oceania">Oceania</label>
+            </div>
+            <div class="mb-4">
+                <h3 class="font-medium">Time Period</h3>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="pre-1800">Pre-1800</label>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="1800-1900">1800-1900</label>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="1900-2000">1900-2000</label>
+                <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="2000-present">2000-Present</label>
+            </div>
+        </aside>
+
+        <main class="w-full md:w-3/4 bg-white p-4 rounded-lg shadow-md">
+            <h2 class="text-lg font-semibold mb-4">Historical Map View</h2>
+            <div id="map-message" class="hidden text-center text-gray-500 mb-4"></div>
+            <div id="map"></div>
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="search.js"></script>
+    <script>
+        const API_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxZTQ2MjYxZDNlOGZjNzBmMzMxYzQ3NzIwNGNhNmIyMCIsImp0aSI6ImIxYzk2OGNhMmFmZGM0NmZkMjI4MjA4YTgyM2FjOTAxYTQ1OGEwMDgyMDgxN2IwNzA3Y2UzYzBjNjBhMTVlZmNhYTE5YTEwODc0ZmQzMTU4IiwiaWF0IjoxNzQ2MDIxOTIyLjk4MDAzMywibmJmIjoxNzQ2MDIxOTIyLjk4MDAzNCwiZXhwIjozMzMwMjkzMDcyMi45NzYyMTUsInN1YiI6Ijc4MjExODYxIiwiaXNzIjoiaHR0cHM6Ly9tZXRhLndpa2ltZWRpYS5vcmciLCJyYXRlbGltaXQiOnsicmVxdWVzdHNfcGVyX3VuaXQiOjUwMDAsInVuaXQiOiJIT1VSIn0sInNjb3BlcyI6WyJiYXNpYyJdfQ.jXzQPp14NVoY-lvaLCjDsERYwu-enWBQuKCJkGp0Kj16yYY9NNafB2cWfNyP1UQCteY4KZ7-17VR9bQFA-ZIuUKJ6mD33TcV2h7qGf0m9fWf_vedqi6R7ZFrIklmLTlFMlQzUrUmuIEf3zSiRtwNAJx-xk7Wa3AcQjr54BOzUwSHcsvjWpTzQdv4IWkS88hIzpM1989YZtcLPQ7UCxxuS3PPFx_6vEuv-jJilbdXG2It9ODSamdqCbjtR_ns1tIdXBXfFBZ--1SGDAprur9rMFqJ46w4-HjRtmzaE3PRvwE3caYiNJYS8OA29QIt-hOd6pyac6vVF_Zo_RBBeEU-6m0X7pT1Xlffqbp3llfiwU0ttPtN30x2JBPPjenBV2l1Ryj5iicdnWeTfI-QlX4CUgSrd4sXZr_v_KvUDKOOIXUimLRkEUi1c3BYssobc374twVltchb282b4kS6YzVOOOOcJwYhPMAyAzpt44o77Hi-Opoxgspg0PvE5tYfLFbCaRn20JFl5VMzFlqjH_qXJJH2WNGmuNtkmsIx__BirvC-2JTEuz85Z0cQZ6nz6U2qckUq_nkr9k8z28AXWLcs42CRtmtA5xiD-qkE-qYhIZ9iNPdQGdFgdX90dUgt6Ch7d6jP1oKDYWQjGSjC5xlFSdf3eigrB71Qd6eQncIE9p8';
+        let allEvents = [];
+        let map;
+        let markers = [];
+
+        function categorizeEvent(description) {
+            description = description.toLowerCase();
+            if (description.includes("war") || description.includes("battle") || description.includes("conflict") || description.includes("revolution")) {
+                return { type: "Wars & Conflicts", color: "red", markerColor: "#ff0000" };
+            } else if (description.includes("assassination") || description.includes("election") || description.includes("treaty") || description.includes("soviet") || description.includes("napoleon")) {
+                return { type: "Political Events", color: "purple", markerColor: "#800080" };
+            } else if (description.includes("discovered") || description.includes("invention") || description.includes("scientific")) {
+                return { type: "Scientific Achievement", color: "green", markerColor: "#008000" };
+            } else {
+                return { type: "Cultural Milestones", color: "blue", markerColor: "#0000ff" };
+            }
+        }
+
+        function getTimePeriod(year) {
+            if (year < 1800) return "pre-1800";
+            if (year >= 1800 && year <= 1900) return "1800-1900";
+            if (year > 1900 && year <= 2000) return "1900-2000";
+            return "2000-present";
+        }
+
+        function inferLocation(description) {
+            description = description.toLowerCase();
+            if (description.includes("france") || description.includes("napoleon")) return { region: "Europe", location: "France" };
+            if (description.includes("germany") || description.includes("prussia")) return { region: "Europe", location: "Germany" };
+            if (description.includes("britain") || description.includes("england") || description.includes("scotland")) return { region: "Europe", location: "United Kingdom" };
+            if (description.includes("italy") || description.includes("roman") || description.includes("byzantine")) return { region: "Europe", location: "Italy" };
+            if (description.includes("russia") || description.includes("soviet") || description.includes("azerbaijan")) return { region: "Europe", location: "Russia" };
+            if (description.includes("spain")) return { region: "Europe", location: "Spain" };
+            if (description.includes("portugal")) return { region: "Europe", location: "Portugal" };
+            if (description.includes("ottoman") || description.includes("turkey")) return { region: "Europe", location: "Turkey" };
+            if (description.includes("austria") || description.includes("hungary")) return { region: "Europe", location: "Austria" };
+            if (description.includes("poland")) return { region: "Europe", location: "Poland" };
+            if (description.includes("denmark")) return { region: "Europe", location: "Denmark" };
+            if (description.includes("sweden")) return { region: "Europe", location: "Sweden" };
+            if (description.includes("norway")) return { region: "Europe", location: "Norway" };
+            if (description.includes("greece")) return { region: "Europe", location: "Greece" };
+            if (description.includes("viking")) return { region: "Europe", location: "Norway" };
+            if (description.includes("america") || description.includes("united states") || description.includes("canada") || description.includes("mexico")) {
+                return { region: "North America", location: description.includes("canada") ? "Canada" : description.includes("mexico") ? "Mexico" : "United States" };
+            }
+            if (description.includes("south america") || description.includes("brazil") || description.includes("argentina") || description.includes("peru") || description.includes("chile")) {
+                return { region: "South America", location: description.includes("brazil") ? "Brazil" : description.includes("argentina") ? "Argentina" : description.includes("peru") ? "Peru" : "Chile" };
+            }
+            if (description.includes("asia") || description.includes("china") || description.includes("japan") || description.includes("india") || description.includes("korea") || description.includes("mongol") || description.includes("persia") || description.includes("turk") || description.includes("arab")) {
+                return { region: "Asia", location: description.includes("china") ? "China" : description.includes("japan") ? "Japan" : description.includes("india") ? "India" : description.includes("korea") ? "Korea" : "Persia" };
+            }
+            if (description.includes("africa") || description.includes("egypt") || description.includes("south africa") || description.includes("ethiopia") || description.includes("morocco")) {
+                return { region: "Africa", location: description.includes("egypt") ? "Egypt" : description.includes("south africa") ? "South Africa" : description.includes("ethiopia") ? "Ethiopia" : "Morocco" };
+            }
+            if (description.includes("oceania") || description.includes("australia") || description.includes("new zealand") || description.includes("tasmania") || description.includes("bounty")) {
+                return { region: "Oceania", location: description.includes("australia") ? "Australia" : description.includes("new zealand") ? "New Zealand" : "Australia" };
+            }
+            return { region: "Europe", location: "Central Europe" };
+        }
+
+        function getCoordinates(location) {
+            const locationCoordinates = {
+                "France": [48.8566, 2.3522],
+                "Germany": [52.5200, 13.4050],
+                "United Kingdom": [51.5074, -0.1278],
+                "Italy": [41.9028, 12.4964],
+                "Russia": [55.7558, 37.6173],
+                "Spain": [40.4168, -3.7038],
+                "Portugal": [38.7223, -9.1393],
+                "Turkey": [41.0082, 28.9784],
+                "Austria": [48.2082, 16.3738],
+                "Poland": [52.2297, 21.0122],
+                "Denmark": [55.6761, 12.5683],
+                "Sweden": [59.3293, 18.0686],
+                "Norway": [59.9139, 10.7522],
+                "Greece": [37.9838, 23.7275],
+                "Central Europe": [54, 15],
+                "United States": [38.9072, -77.0369],
+                "Canada": [45.4215, -75.6972],
+                "Mexico": [19.4326, -99.1332],
+                "Brazil": [-15.8267, -47.9218],
+                "Argentina": [-34.6037, -58.3816],
+                "Peru": [-12.0464, -77.0428],
+                "Chile": [-33.4489, -70.6693],
+                "China": [39.9042, 116.4074],
+                "Japan": [35.6762, 139.6503],
+                "India": [28.6139, 77.2090],
+                "Korea": [37.5665, 126.9780],
+                "Persia": [35.6892, 51.3890],
+                "Egypt": [30.0444, 31.2357],
+                "South Africa": [-25.7479, 28.2293],
+                "Ethiopia": [9.0290, 38.7469],
+                "Morocco": [34.0209, -6.8416],
+                "Australia": [-35.2809, 149.1300],
+                "New Zealand": [-41.2865, 174.7762]
+            };
+            const baseCoords = locationCoordinates[location] || [54, 15];
+            const jitter = 0.5;
+            const lat = baseCoords[0] + (Math.random() - 0.5) * jitter;
+            const lng = baseCoords[1] + (Math.random() - 0.5) * jitter;
+            return [lat, lng];
+        }
+
+        async function fetchEvents() {
+            try {
+                if (typeof axios === "undefined") {
+                    throw new Error("Axios is not loaded");
+                }
+                const url = 'https://api.wikimedia.org/feed/v1/wikipedia/en/onthisday/all/04/28';
+                const response = await axios.get(url, {
+                    headers: {
+                        'Authorization': `Bearer ${API_TOKEN}`,
+                        'Api-User-Agent': 'HistoricalEventFinder (your-email@example.com)'
+                    }
+                });
+
+                const apiEvents = response.data.events;
+
+                console.log("Raw API events:", apiEvents);
+
+                allEvents = apiEvents
+                    .filter(event => event.year >= 0)
+                    .map(event => {
+                        const category = categorizeEvent(event.text);
+                        const { region, location } = inferLocation(event.text);
+                        return {
+                            name: event.text.split('.')[0],
+                            start: parseInt(event.year),
+                            end: parseInt(event.year), 
+                            type: category.type,
+                            color: category.color,
+                            markerColor: category.markerColor,
+                            period: getTimePeriod(parseInt(event.year)),
+                            region: region,
+                            location: location,
+                            coordinates: getCoordinates(location),
+                            wikipediaTitle: event.pages && event.pages[0] ? event.pages[0].title : null
+                        };
+                    });
+
+                console.log("Processed events:", allEvents);
+                const europeEvents = allEvents.filter(event => event.region === "Europe");
+                console.log("Events assigned to Europe:", europeEvents);
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                allEvents = [
+                    { name: "American Civil War", start: 1861, end: 1865, type: "Wars & Conflicts", color: "blue", markerColor: "#0000ff", period: "1800-1900", region: "North America", location: "United States", coordinates: [38.9072, -77.0369] },
+                    { name: "World War I", start: 1914, end: 1918, type: "Wars & Conflicts", color: "red", markerColor: "#ff0000", period: "1900-2000", region: "Europe", location: "Central Europe", coordinates: [54, 15] },
+                    { name: "Moon Landing", start: 1969, end: 1969, type: "Scientific Achievement", color: "green", markerColor: "#008000", period: "1900-2000", region: "North America", location: "United States", coordinates: [38.9072, -77.0369] },
+                    { name: "Berlin Wall Falls", start: 1989, end: 1989, type: "Political Event", color: "purple", markerColor: "#800080", period: "1900-2000", region: "Europe", location: "Germany", coordinates: [52.5200, 13.4050] }
+                ];
+                console.log("Fallback events:", allEvents);
+                const europeEvents = allEvents.filter(event => event.region === "Europe");
+                console.log("Fallback events assigned to Europe:", europeEvents);
+            }
+        }
+
+        function filterEvents() {
+            const selectedRegions = Array.from(document.querySelectorAll(".region:checked"))
+                .map(checkbox => checkbox.getAttribute("data-region"));
+            const selectedPeriods = Array.from(document.querySelectorAll(".time-period:checked"))
+                .map(checkbox => checkbox.getAttribute("data-period"));
+
+            const filteredEvents = allEvents.filter(event => {
+                const regionMatch = selectedRegions.length === 0 || (event.region && selectedRegions.includes(event.region));
+                const periodMatch = selectedPeriods.length === 0 || (event.period && selectedPeriods.includes(event.period));
+                return regionMatch && periodMatch;
+            });
+
+            console.log("Selected regions:", selectedRegions);
+            console.log("Selected periods:", selectedPeriods);
+            console.log("Filtered events:", filteredEvents);
+            return filteredEvents;
+        }
+
+        async function fetchWikipediaInfo(eventName, eventYear, infoContainer, marker, wikipediaTitle) {
+            infoContainer.innerHTML = '<p class="loading">Loading...</p>';
+            try {
+                let searchTerm = wikipediaTitle || eventName.split(' ').slice(0, 3).join(' ').trim();
+                searchTerm = searchTerm.replace(/\b(is|the|of|in|to)\b/gi, '').trim();
+                if (!wikipediaTitle) {
+                    searchTerm = `${searchTerm} ${eventYear}`.trim();
+                }
+
+                console.log('Search term:', searchTerm);
+
+                const searchResponse = await axios.get('https://en.wikipedia.org/w/api.php', {
+                    params: {
+                        action: 'opensearch',
+                        search: searchTerm,
+                        limit: 1,
+                        format: 'json',
+                        origin: '*'
+                    }
+                });
+
+                const searchResults = searchResponse.data;
+                console.log('Search results:', searchResults);
+                if (!searchResults[1] || searchResults[1].length === 0) {
+                    infoContainer.innerHTML = '<p class="error">No additional information found.</p>';
+                    marker.getPopup().update();
+                    return;
+                }
+
+                const matchedTitle = searchResults[1][0];
+                console.log('Matched title:', matchedTitle);
+
+                const extractResponse = await axios.get('https://en.wikipedia.org/w/api.php', {
+                    params: {
+                        action: 'query',
+                        prop: 'extracts',
+                        titles: matchedTitle,
+                        exintro: true,
+                        explaintext: true,
+                        format: 'json',
+                        origin: '*'
+                    }
+                });
+
+                const pages = extractResponse.data.query.pages;
+                console.log('Extract response:', extractResponse.data);
+                const pageId = Object.keys(pages)[0];
+                if (pageId === "-1" || !pages[pageId].extract) {
+                    infoContainer.innerHTML = '<p class="error">No additional information found.</p>';
+                    marker.getPopup().update();
+                    return;
+                }
+
+                const extract = pages[pageId].extract;
+                infoContainer.innerHTML = `<p>${extract.length > 300 ? extract.substring(0, 300) + '...' : extract}</p>`;
+                marker.getPopup().update();
+            } catch (error) {
+                console.error('Error fetching Wikipedia info:', error);
+                infoContainer.innerHTML = '<p class="error">Error fetching additional information.</p>';
+                marker.getPopup().update();
+            }
+        }
+
+        function renderMap(events) {
+            if (!map) {
+                console.error("Map is not initialized. Cannot render markers.");
+                return;
+            }
+
+            const mapMessage = document.getElementById("map-message");
+
+            markers.forEach(marker => map.removeLayer(marker));
+            markers = [];
+
+            if (events.length === 0) {
+                mapMessage.classList.remove("hidden");
+                mapMessage.textContent = "No events match the selected filters.";
+                map.setView([20, 0], 2);
+                return;
+            } else {
+                mapMessage.classList.add("hidden");
+            }
+
+            events.forEach(event => {
+                if (event.coordinates) {
+                    const marker = L.circleMarker(event.coordinates, {
+                        color: event.markerColor,
+                        radius: 8,
+                        fillOpacity: 0.8
+                    }).addTo(map);
+
+                    const popupContent = document.createElement('div');
+                    popupContent.innerHTML = `
+                        <div>
+                            <strong>${event.name} (${event.start}${event.end !== event.start ? `-${event.end}` : ""})</strong><br>
+                            Location: ${event.location || event.region || "Unknown"}<br>
+                            Category: ${event.type}<br>
+                            <span class="read-more-btn">Read More</span>
+                        </div>
+                        <div class="info-container"></div>
+                    `;
+
+                    const readMoreBtn = popupContent.querySelector('.read-more-btn');
+                    const infoContainer = popupContent.querySelector('.info-container');
+
+                    readMoreBtn.addEventListener('click', () => {
+                        fetchWikipediaInfo(event.name, event.start, infoContainer, marker, event.wikipediaTitle);
+                    });
+
+                    marker.bindPopup(popupContent);
+
+                    markers.push(marker);
+                }
+            });
+
+            if (markers.length > 0) {
+                const group = L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.5));
+            } else {
+                map.setView([20, 0], 2);
+            }
+        }
+
+        function initMap() {
+            if (typeof L === "undefined") {
+                console.error("Leaflet is not loaded. Please check the Leaflet script inclusion.");
+                const mapMessage = document.getElementById("map-message");
+                mapMessage.classList.remove("hidden");
+                mapMessage.textContent = "Error: Unable to load the map. Please check your internet connection or try again later.";
+                return;
+            }
+
+            map = L.map("map").setView([20, 0], 2);
+
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+
+        async function initMapView() {
+            await fetchEvents();
+            initMap();
+            if (map) {
+                const filteredEvents = filterEvents();
+                renderMap(filteredEvents);
+            }
+        }
+
+        function setupFilterListeners() {
+            const checkboxes = document.querySelectorAll(".region, .time-period");
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener("change", () => {
+                    if (map) {
+                        const filteredEvents = filterEvents();
+                        renderMap(filteredEvents);
+                    }
+                });
+            });
+        }
+
+        window.onload = () => {
+            initMapView().then(() => {
+                setupFilterListeners();
+            });
+        };
+    </script>
+</body>
+</html>

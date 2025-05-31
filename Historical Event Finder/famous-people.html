@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="./css/output.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+<style>
+    .person-card {
+        background-color: white;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    .person-card .avatar {
+        width: 4rem;
+        height: 4rem;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem;
+    }
+    .view-events-btn {
+        color: #3b82f6;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+    .view-events-btn:hover {
+        color: #1d4ed8;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    .pagination button {
+        background-color: #3b82f6;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 0.25rem;
+        cursor: pointer;
+    }
+    .pagination button:disabled {
+        background-color: #d1d5db;
+        cursor: not-allowed;
+    }
+</style>
+</head>
+<body>
+    <body class="bg-gray-100 font-sans">
+        <header class="bg-blue-800 text-white p-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Historical Event Finder</h1>
+            <input type="text" name="" id="search-input" placeholder="Search historical events..." class="rounded p-2 text-black w-64 bg-white">
+        </header>
+    
+        <nav class="bg-blue-700 text-white px-4 py-2 flex gap-6">
+            <a href="index.html" class="hover:underline">Timeline</a>
+            <a href="map-view.html" class="hover:underline">Map View</a>
+            <a href="Categories.html" class="hover:underline">Categories</a>
+            <a href="famous-people.html" class="hover:underline">Famous People</a>
+        </nav>
+    
+        <div class="flex flex-col md:flex-row p-4 space-y-4 md:space-y-0 md:space-x-4">
+            <aside class="w-full md:w-1/4 bg-white p-4 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold mb-4">Filters</h2>
+                <div id="filter-warning" class="hidden bg-yellow-100 text-yellow-800 p-2 rounded-md mb-4">
+                    <span class="font-semibold">⚠ Many filters active (<span id="filter-count">0</span>)</span>
+                    <p class="text-sm">Try selecting fewer filters to see more specific people.</p>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-medium">Field</h3>
+                    <label class="block"><input type="checkbox" class="mr-2 field" data-field="Political Leader" checked>Political Leaders</label>
+                    <label class="block"><input type="checkbox" class="mr-2 field" data-field="Scientist" >Scientists</label>
+                    <label class="block"><input type="checkbox" class="mr-2 field" data-field="Artist/Scientist" >Artists</label>
+                    <label class="block"><input type="checkbox" class="mr-2 field" data-field="Military Leader" >Military Leaders</label>
+                    <label class="block"><input type="checkbox" class="mr-2 field" data-field="Philosopher" >Philosophers</label>
+                </div>
+                <div class="mb-4">
+                    <h3 class="font-medium">Time Period</h3>
+                    <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="ancient" >Ancient (pre-500 CE)</label>
+                    <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="medieval" >Medieval (500-1500)</label>
+                    <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="renaissance" >Renaissance (1300-1700)</label>
+                    <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="modern" >Modern (1700-present)</label>
+                    <label class="block"><input type="checkbox" class="mr-2 time-period" data-period="contemporary" checked>Contemporary (1900-present)</label>
+                </div>
+                <button id="reset-filters" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Reset All Filters</button>
+            </aside>
+    
+            <main class="w-full md:w-3/4 bg-white p-4 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold mb-4">Historical Figures <span id="person-count" class="text-red-500 text-sm"></span></h2>
+                <div id="people-list" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+                <div class="pagination">
+                    <button id="prev-page" disabled>Previous</button>
+                    <span id="page-info"></span>
+                    <button id="next-page">Next</button>
+                </div>
+            </main>
+        </div>
+    
+        <script src="search.js"></script>
+        <script>
+            const fieldToOccupation = {
+                "Political Leader": "Q82955",  
+                "Scientist": "Q901",         
+                "Artist/Scientist": "Q483501", 
+                "Military Leader": "Q199701", 
+                "Philosopher": "Q4964182"     
+            };
+        
+            const avatarColors = [
+                "bg-blue-500", "bg-red-500", "bg-green-500",
+                "bg-purple-500", "bg-orange-500", "bg-teal-500"
+            ];
+        
+            let peopleData = [];
+            let currentPage = 1;
+            const peoplePerPage = 9;
+            let totalPeople = 0;
+            let searchTerm = new URLSearchParams(window.location.search).get("search")?.trim().toLowerCase();
+        
+            async function fetchPeople() {
+                const selectedFields = Array.from(document.querySelectorAll(".field:checked"))
+                    .map(checkbox => checkbox.getAttribute("data-field"));
+                const selectedPeriods = Array.from(document.querySelectorAll(".time-period:checked"))
+                    .map(checkbox => checkbox.getAttribute("data-period"));
+        
+                let occupationFilter = "";
+                if (selectedFields.length > 0 && selectedFields.length < 5) {
+                    const occupationIds = selectedFields.map(field => `wd:${fieldToOccupation[field]}`).join(", ");
+                    occupationFilter = `FILTER(?occupation IN (${occupationIds}))`;
+                }
+        
+                let timeFilter = "";
+                if (selectedPeriods.length > 0 && selectedPeriods.length < 5) {
+                    if (!selectedPeriods.includes("ancient")) timeFilter += `FILTER(?birthYear >= 500)\n`;
+                    if (!selectedPeriods.includes("medieval")) timeFilter += `FILTER(?birthYear >= 1500 || ?birthYear < 500)\n`;
+                    if (!selectedPeriods.includes("renaissance")) timeFilter += `FILTER(?birthYear >= 1700 || ?birthYear < 1300)\n`;
+                    if (!selectedPeriods.includes("modern")) timeFilter += `FILTER(?birthYear >= 1900 || ?birthYear < 1700)\n`;
+                    if (!selectedPeriods.includes("contemporary")) timeFilter += `FILTER(?birthYear < 1900)\n`;
+                }
+        
+                let searchFilter = "";
+                if (searchTerm) {
+                    searchFilter = `FILTER(CONTAINS(LCASE(?personLabel), "${searchTerm}"))`;
+                }
+        
+                const sparqlQuery = `
+                    SELECT ?person ?personLabel ?birth ?death ?nationalityLabel ?occupationLabel
+                    WHERE {
+                        ?person wdt:P31 wd:Q5;
+                                wdt:P106 ?occupation;
+                                wdt:P569 ?birth;
+                                rdfs:label ?personLabel.
+                        BIND(YEAR(?birth) AS ?birthYear)
+                        OPTIONAL { ?person wdt:P570 ?death. }
+                        OPTIONAL { ?person wdt:P27 ?nationality. ?nationality rdfs:label ?nationalityLabel. }
+                        ?occupation rdfs:label ?occupationLabel.
+                        ${occupationFilter}
+                        FILTER(LANG(?personLabel) = "en")
+                        FILTER(LANG(?occupationLabel) = "en")
+                        FILTER(LANG(?nationalityLabel) = "en")
+                        ${timeFilter}
+                        ${searchFilter}
+                    }
+                    LIMIT 50
+                `;
+        
+                const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(sparqlQuery)}&format=json`;
+        
+                try {
+                    const response = await fetch(url, {
+                        headers: { "Accept": "application/sparql-results+json" }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}, Text: ${await response.text()}`);
+                    }
+                    const data = await response.json();
+        
+                    const uniquePeople = [];
+                    const seenNames = new Set();
+                    peopleData = data.results.bindings.map((item, index) => {
+                        const birthYear = item.birth.value.split("-")[0];
+                        const deathYear = item.death ? item.death.value.split("-")[0] : "present";
+                        const period = getTimePeriod(birthYear);
+                        const person = {
+                            name: item.personLabel.value,
+                            lifespan: `${birthYear}-${deathYear}`,
+                            field: mapOccupationToField(item.occupationLabel.value),
+                            nationality: item.nationalityLabel ? item.nationalityLabel.value : "Unknown",
+                            period: period,
+                            avatarColor: avatarColors[index % avatarColors.length],
+                            wikidataId: item.person.value.split("/").pop()
+                        };
+                        if (!seenNames.has(person.name)) {
+                            seenNames.add(person.name);
+                            uniquePeople.push(person);
+                        }
+                        return person;
+                    }).filter(p => uniquePeople.includes(p));
+        
+                    peopleData = uniquePeople;
+                    totalPeople = peopleData.length;
+
+                    if (searchTerm) {
+                        const personIndex = peopleData.findIndex(p => p.name.toLowerCase() === searchTerm);
+                        if (personIndex !== -1) {
+                            currentPage = Math.floor(personIndex / peoplePerPage) + 1;
+                        }
+                    }
+        
+                    renderPeople();
+                    showFilterRecommendations();
+                } catch (error) {
+                    console.error("Error fetching people:", error);
+                    document.getElementById("people-list").innerHTML = `<p class='text-red-500'>Error loading people: ${error.message}. Please try again later.</p>`;
+                }
+            }
+        
+            function mapOccupationToField(occupation) {
+                if (occupation === "politician") return "Political Leader";
+                if (occupation === "scientist") return "Scientist";
+                if (occupation === "artist") return "Artist/Scientist";
+                if (occupation === "military officer") return "Military Leader";
+                if (occupation === "philosopher") return "Philosopher";
+                return "Unknown";
+            }
+        
+            function getTimePeriod(year) {
+                const startYear = parseInt(year);
+                if (startYear < 500) return "ancient";
+                if (startYear >= 500 && startYear <= 1500) return "medieval";
+                if (startYear > 1300 && startYear <= 1700) return "renaissance";
+                if (startYear > 1700 && startYear <= 1900) return "modern";
+                return "contemporary";
+            }
+        
+            function filterPeople() {
+                const selectedFields = Array.from(document.querySelectorAll(".field:checked"))
+                    .map(checkbox => checkbox.getAttribute("data-field"));
+                const selectedPeriods = Array.from(document.querySelectorAll(".time-period:checked"))
+                    .map(checkbox => checkbox.getAttribute("data-period"));
+        
+                return peopleData.filter(person =>
+                    selectedFields.includes(person.field) &&
+                    selectedPeriods.includes(person.period)
+                );
+            }
+        
+            function renderPeople() {
+                const filteredPeople = filterPeople();
+                const startIndex = (currentPage - 1) * peoplePerPage;
+                const endIndex = startIndex + peoplePerPage;
+                const paginatedPeople = filteredPeople.slice(startIndex, endIndex);
+        
+                const peopleList = document.getElementById("people-list");
+                const personCountSpan = document.getElementById("person-count");
+                peopleList.innerHTML = '';
+        
+                personCountSpan.textContent = `(${filteredPeople.length})`;
+        
+                if (paginatedPeople.length === 0) {
+                    const message = document.createElement("div");
+                    message.className = "text-center text-gray-500 mt-4";
+                    message.textContent = "No people match the selected filters.";
+                    peopleList.appendChild(message);
+                } else {
+                    paginatedPeople.forEach(person => {
+    const personCard = document.createElement("div");
+    personCard.className = "person-card";
+
+    if (searchTerm && person.name.toLowerCase() === searchTerm) {
+        personCard.style.border = "2px solid #3b82f6";
+        personCard.style.backgroundColor = "#eff6ff";
+        setTimeout(() => personCard.scrollIntoView({ behavior: "smooth", block: "center" }), 100);
+    }
+
+    const usaFlag = person.nationality === "United States" ? " 🇺🇸" : "";
+
+    personCard.innerHTML = `
+        <div class="avatar ${person.avatarColor}"></div>
+        <h3 class="text-md font-semibold">${person.name} ${usaFlag}</h3>
+        <p class="text-sm text-gray-600">${person.lifespan}</p>
+        <p class="text-sm text-gray-600">${person.field}</p>
+        <p class="text-sm text-gray-600">${person.nationality}</p>
+    `;
+    
+    peopleList.appendChild(personCard);
+});
+                }
+        
+                const totalPages = Math.ceil(filteredPeople.length / peoplePerPage);
+                document.getElementById("page-info").textContent = `Page ${currentPage} of ${totalPages}`;
+                document.getElementById("prev-page").disabled = currentPage === 1;
+                document.getElementById("next-page").disabled = currentPage === totalPages || totalPages === 0;
+            }
+        
+            function showFilterRecommendations() {
+                const filterWarning = document.getElementById("filter-warning");
+                const filterCountSpan = document.getElementById("filter-count");
+                const fieldCheckboxes = document.querySelectorAll(".field:checked");
+                const timePeriodCheckboxes = document.querySelectorAll(".time-period:checked");
+                const totalFilters = fieldCheckboxes.length + timePeriodCheckboxes.length;
+        
+                filterCountSpan.textContent = totalFilters;
+                if (totalFilters > 4) {
+                    filterWarning.classList.remove("hidden");
+                } else {
+                    filterWarning.classList.add("hidden");
+                }
+            }
+        
+            function setupFilterListeners() {
+                const checkboxes = document.querySelectorAll(".field, .time-period");
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener("change", () => {
+                        fetchPeople();
+                    });
+                });
+        
+                const resetButton = document.getElementById("reset-filters");
+                resetButton.addEventListener("click", () => {
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+                    fetchPeople();
+                });
+            }
+        
+            document.getElementById("prev-page").addEventListener("click", () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderPeople();
+                }
+            });
+        
+            document.getElementById("next-page").addEventListener("click", () => {
+                const filteredPeople = filterPeople();
+                const totalPages = Math.ceil(filteredPeople.length / peoplePerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderPeople();
+                }
+            });
+        
+            fetchPeople();
+            setupFilterListeners();
+        
+            window.addEventListener("resize", () => {
+                renderPeople();
+            });
+        </script>
+</body>
+</html>
